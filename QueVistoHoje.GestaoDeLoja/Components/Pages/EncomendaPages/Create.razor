@@ -1,12 +1,16 @@
 ﻿@page "/encomenda/create"
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
+@using Microsoft.AspNetCore.Identity
+@using QueVistoHoje.GestaoDeLoja.Data
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 @inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
 @inject NavigationManager NavigationManager
+@inject UserManager<ApplicationUser> UserManager
 
-<PageTitle>Create</PageTitle>
+<PageTitle>Criar Encomenda</PageTitle>
 
-<h1>Create</h1>
+<h1>Criar Encomenda</h1>
 
 <h2>Encomenda</h2>
 <hr />
@@ -15,43 +19,171 @@
         <EditForm method="post" Model="Encomenda" OnValidSubmit="AddEncomenda" FormName="create" Enhance>
             <DataAnnotationsValidator />
             <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="mb-3">
+                <label for="cliente" class="form-label">Cliente:</label>
+                <InputSelect id="cliente" @bind-Value="SelectedClienteIdString" class="form-control">
+                    <option value="">Selecione um cliente</option>
+                    @foreach (var cliente in Clientes)
+                    {
+                        <option value="@cliente.Id">@cliente.UserName (@cliente.Nome)</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => SelectedClienteIdString" class="text-danger" />
+            </div>
+
             <div class="mb-3">
                 <label for="data" class="form-label">Data:</label>
                 <InputDate id="data" @bind-Value="Encomenda.Data" class="form-control" />
                 <ValidationMessage For="() => Encomenda.Data" class="text-danger" />
             </div>
+
             <div class="mb-3">
                 <label for="estado" class="form-label">Estado:</label>
                 <InputText id="estado" @bind-Value="Encomenda.Estado" class="form-control" />
                 <ValidationMessage For="() => Encomenda.Estado" class="text-danger" />
             </div>
+
             <div class="mb-3">
-                <label for="enderecoentrega" class="form-label">EnderecoEntrega:</label>
+                <label for="enderecoentrega" class="form-label">Endereço de Entrega:</label>
                 <InputText id="enderecoentrega" @bind-Value="Encomenda.EnderecoEntrega" class="form-control" />
                 <ValidationMessage For="() => Encomenda.EnderecoEntrega" class="text-danger" />
             </div>
-            <button type="submit" class="btn btn-primary">Create</button>
+
+            <div class="mb-3">
+                <label for="transportadora" class="form-label">Transportadora:</label>
+                <InputSelect id="transportadora" @bind-Value="SelectedTransportadoraId" class="form-control">
+                    <option value="">Selecione uma transportadora</option>
+                    @foreach (var transportadora in Transportadoras)
+                    {
+                        <option value="@transportadora.Id">@transportadora.Nome</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => SelectedTransportadoraId" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Produtos:</label>
+                @foreach (var produto in Encomenda.Produtos)
+                {
+                    <p>@produto.Nome</p>
+                }
+                <button type="button" class="btn btn-secondary" @onclick="ToggleProductSelection">Adicionar Produto</button>
+            </div>
+
+            @if (ShowProductSelection)
+            {
+                <div class="col-md-12">
+                    <EditForm Model="SelectedProductId" OnValidSubmit="AddProductToEncomenda" FormName="addProduct" method="post" Enhance Context="productContext">
+                        <h3>Adicionar Produto</h3>
+                        <DataAnnotationsValidator />
+                        <ValidationSummary class="text-danger" role="alert" />
+                        <div class="mb-3">
+                            <label for="produto" class="form-label">Produto:</label>
+                            <InputSelect id="produto" @bind-Value="SelectedProductId" class="form-control">
+                                <option value="">Selecione um produto</option>
+                                @foreach (var produto in Produtos)
+                                {
+                                    <option value="@produto.Id">@produto.Nome</option>
+                                }
+                            </InputSelect>
+                            <ValidationMessage For="() => SelectedProductId" class="text-danger" />
+                        </div>
+                        <button type="submit" class="btn btn-primary">Adicionar</button>
+                    </EditForm>
+                </div>
+            }
+            <button type="submit" class="btn btn-primary">Criar Encomenda</button>
         </EditForm>
     </div>
 </div>
 
 <div>
-    <a href="/encomenda">Back to List</a>
+    <a href="/encomenda">Voltar para a Lista</a>
 </div>
 
 @code {
     [SupplyParameterFromForm]
     private Encomenda Encomenda { get; set; } = new();
 
-    protected override void OnInitialized()
+    [SupplyParameterFromForm]
+    private int SelectedProductId { get; set; } = 0;
+
+    private List<ApplicationUser> Clientes { get; set; } = new();
+    private List<Produto> Produtos { get; set; } = new();
+    private List<Transportadora> Transportadoras { get; set; } = new();
+
+    private string? SelectedClienteIdString { get; set; }
+    private int SelectedTransportadoraId { get; set; } = 0;
+
+    private bool ShowProductSelection { get; set; } = false;
+
+    protected override async Task OnInitializedAsync()
     {
         Encomenda.Data = DateTime.Now;
+
+        using var context = DbFactory.CreateDbContext();
+
+        // Load clientes (users with "Cliente" role)
+        var clienteRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Cliente");
+        if (clienteRole != null)
+        {
+            Clientes = await context.UserRoles
+              .Where(ur => ur.RoleId == clienteRole.Id)
+              .Join(context.Users, ur => ur.UserId, u => u.Id, (ur, u) => u)
+               .ToListAsync();
+        }
+
+        // Load produtos
+        Produtos = await context.Produtos.ToListAsync();
+
+        // Load transportadoras
+        Transportadoras = await context.Transportadoras.ToListAsync();
+    }
+    private void ToggleProductSelection()
+    {
+        ShowProductSelection = !ShowProductSelection;
     }
 
-    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddProductToEncomenda()
+    {
+        using var context = DbFactory.CreateDbContext();
+        if (SelectedProductId != 0)
+        {
+            var product = Produtos.FirstOrDefault(x => x.Id == SelectedProductId);
+            if (product != null)
+            {
+                Encomenda.Produtos.Add(product);
+                SelectedProductId = 0; // Resetar a seleção
+            }
+        }
+        ShowProductSelection = false;
+    }
+
     private async Task AddEncomenda()
     {
         using var context = DbFactory.CreateDbContext();
+
+        // Set the selected cliente
+        if (!string.IsNullOrEmpty(SelectedClienteIdString) && int.TryParse(SelectedClienteIdString, out int clienteId))
+        {
+            var cliente = await context.Users.FindAsync(clienteId);
+            if (cliente != null)
+            {
+                Encomenda.Cliente = cliente;
+            }
+        }
+
+        // Set the selected transportadora
+        if (SelectedTransportadoraId != 0)
+        {
+            var transportadora = await context.Transportadoras.FindAsync(SelectedTransportadoraId);
+            if (transportadora != null)
+            {
+                Encomenda.Transportadora = transportadora;
+            }
+        }
+        //Aqui, so salvamos as mudanças na encomenda em si, e nao nos produtos.
         context.Encomendas.Add(Encomenda);
         await context.SaveChangesAsync();
         NavigationManager.NavigateTo("/encomenda");
