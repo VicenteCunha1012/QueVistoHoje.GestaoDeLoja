@@ -1,0 +1,92 @@
+﻿@page "/produtos"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@using QueVistoHoje.GestaoDeLoja.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Produtos</PageTitle>
+
+<h1>Produtos</h1>
+
+<p>
+    <a href="produtos/create">Criar novo produto</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Produtos">
+    <PropertyColumn  Property="produto => produto.Nome" />
+    <PropertyColumn title="Descrição" Property="produto => produto.Descricao" />
+    <TemplateColumn title="Preço" Context="produto">
+        @FormatPrice(produto.Preco)
+    </TemplateColumn>
+    <PropertyColumn Property="produto => produto.Stock" />
+    <TemplateColumn title="Imagem" Context="produto">
+        <img src="@produto.Imagem"
+             alt="Imagem do Produto"
+             style="max-width: 50px; max-height: 50px;"
+             onerror="this.src='https://th.bing.com/th/id/R.8f9243002ceb3b4682718ab1f3eaa870?rik=GRsVfZr8Dn0V%2bQ&pid=ImgRaw&r=0';" />
+    </TemplateColumn>
+    <TemplateColumn title="Categorias" Context="produto">
+        @GetCategoriaNomes(produto)
+    </TemplateColumn>
+    <TemplateColumn title="Empresa" Context="produto">
+        @GetEmpresasNome(produto)
+    </TemplateColumn>
+    <PropertyColumn Property="produto => produto.Promocao" />
+    <PropertyColumn Property="produto => produto.Estado" />
+    <TemplateColumn Context="produto">
+        <a href="@($"produtos/edit?id={produto.Id}")">Edit</a> |
+        <a href="@($"produtos/details?id={produto.Id}")">Details</a> |
+        <a href="@($"produtos/delete?id={produto.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+
+    }
+
+    private string GetEmpresasNome(Produto produto)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var produtoComEmpresa = context.Produtos
+            .Include(p => p.Empresa)
+            .FirstOrDefault(p => p.Id == produto.Id);
+
+        if (produtoComEmpresa?.Empresa != null)
+        {
+            return produtoComEmpresa.Empresa.Nome;
+        }
+
+        return "Nenhuma";
+    }
+
+
+    private string GetCategoriaNomes(Produto produto)
+    {
+        using var context = DbFactory.CreateDbContext();
+        var produtoComCategorias = context.Produtos
+        .Include(p => p.Categoria)
+        .FirstOrDefault(p => p.Id == produto.Id);
+
+
+        if (produtoComCategorias?.Categoria != null && produtoComCategorias.Categoria.Any())
+        {
+            return string.Join(", ", produtoComCategorias.Categoria.Select(c => c.Nome));
+        }
+
+        return "Nenhuma";
+    }
+
+    private string FormatPrice(decimal price)
+    {
+        return $"{price:N2}€";
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

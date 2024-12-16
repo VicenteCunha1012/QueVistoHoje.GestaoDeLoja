@@ -1,0 +1,44 @@
+﻿@page "/empresas"
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@using QueVistoHoje.GestaoDeLoja.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Index</PageTitle>
+
+<h1>Index</h1>
+
+<p>
+    <a href="empresas/create">Create New</a>
+</p>
+
+<QuickGrid Class="table" Items="context.Empresas">
+    <PropertyColumn Property="empresa => empresa.Nome" />
+    <PropertyColumn Property="empresa => empresa.Morada" />
+    <TemplateColumn title="Imagem" Context="empresa">
+        <img src="@empresa.Imagem"
+             alt="Imagem da Empresa"
+             style="max-width: 50px; max-height: 50px;"
+             onerror="this.src='https://th.bing.com/th/id/R.7776ab5b7fff4d113107d455450aa5d6?rik=bVaBG8atKacAHg&pid=ImgRaw&r=0';" />
+    </TemplateColumn>
+    <PropertyColumn Property="empresa => empresa.Nif" />
+
+    <TemplateColumn Context="empresa">
+        <a href="@($"empresas/edit?id={empresa.Id}")">Edit</a> |
+        <a href="@($"empresas/details?id={empresa.Id}")">Details</a> |
+        <a href="@($"empresas/delete?id={empresa.Id}")">Delete</a>
+    </TemplateColumn>
+</QuickGrid>
+
+@code {
+    private ApplicationDbContext context = default!;
+
+    protected override void OnInitialized()
+    {
+        context = DbFactory.CreateDbContext();
+    }
+
+    public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

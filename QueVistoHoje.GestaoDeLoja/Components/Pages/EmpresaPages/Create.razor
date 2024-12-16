@@ -1,0 +1,59 @@
+﻿@page "/empresas/create"
+@using Microsoft.EntityFrameworkCore
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Empresa</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Empresa" OnValidSubmit="AddEmpresa" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label> 
+                <InputText id="nome" @bind-Value="Empresa.Nome" class="form-control" /> 
+                <ValidationMessage For="() => Empresa.Nome" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="morada" class="form-label">Morada:</label> 
+                <InputText id="morada" @bind-Value="Empresa.Morada" class="form-control" /> 
+                <ValidationMessage For="() => Empresa.Morada" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="imagem" class="form-label">Imagem:</label> 
+                <InputText id="imagem" @bind-Value="Empresa.Imagem" class="form-control" /> 
+                <ValidationMessage For="() => Empresa.Imagem" class="text-danger" /> 
+            </div>        
+            <div class="mb-3">
+                <label for="nif" class="form-label">Nif:</label> 
+                <InputText id="nif" @bind-Value="Empresa.Nif" class="form-control" /> 
+                <ValidationMessage For="() => Empresa.Nif" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/empresas">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Empresa Empresa { get; set; } = new();
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddEmpresa()
+    {
+        using var context = DbFactory.CreateDbContext();
+        context.Empresas.Add(Empresa);
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/empresas");
+    }
+}

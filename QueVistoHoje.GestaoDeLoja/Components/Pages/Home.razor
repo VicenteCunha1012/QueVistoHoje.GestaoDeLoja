@@ -1,0 +1,78 @@
+﻿@page "/"
+@using Microsoft.EntityFrameworkCore
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Home</PageTitle>
+
+<h1>Bem-vindo ao Que Visto Hoje!</h1>
+
+<p>Está na aplicação de Gestão da Loja</p>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/produtos">Produtos</a></h5>
+                    <p class="card-text">Número de Produtos: @NumeroProdutos</p>
+                    <a href="/produtos/create" class="btn btn-primary">Adicionar Produto</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/categoria">Categorias</a></h5>
+                    <p class="card-text">Número de Categorias: @NumeroCategorias</p>
+                    <a href="/categoria/create" class="btn btn-primary">Adicionar Categoria</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/empresas">Empresas</a></h5>
+                    <p class="card-text">Número de Empresas: @NumeroEmpresas</p>
+                    <a href="/empresas/create" class="btn btn-primary">Adicionar Empresa</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/encomenda">Encomendas</a></h5>
+                    <p class="card-text">Número de Encomendas: @NumeroEncomendas</p>
+                    <a href="/encomenda/create" class="btn btn-primary">Adicionar Encomenda</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><a href="/transportadora">Transportadoras</a></h5>
+                    <p class="card-text">Número de Transportadoras: @NumeroTransportadoras</p>
+                    <a href="/transportadora/create" class="btn btn-primary">Adicionar Transportadora</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int NumeroProdutos { get; set; }
+    private int NumeroCategorias { get; set; }
+    private int NumeroEmpresas { get; set; }
+    private int NumeroEncomendas { get; set; }
+    private int NumeroTransportadoras { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        NumeroProdutos = await context.Produtos.CountAsync();
+        NumeroCategorias = await context.Categorias.CountAsync();
+        NumeroEmpresas = await context.Empresas.CountAsync();
+        NumeroEncomendas = await context.Encomendas.CountAsync();
+        NumeroTransportadoras = await context.Transportadoras.CountAsync();
+    }
+}

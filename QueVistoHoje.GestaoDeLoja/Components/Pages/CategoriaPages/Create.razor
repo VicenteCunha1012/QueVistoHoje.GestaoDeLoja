@@ -1,0 +1,86 @@
+﻿@page "/categoria/create"
+@rendermode InteractiveServer
+@using Microsoft.EntityFrameworkCore
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Categoria</h2>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Categoria" OnValidSubmit="AddCategoria" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert"/>
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                    <p class="text-danger">@ErrorMessage</p>
+            }
+            <div class="mb-3">
+                <label for="categoriapaiid" class="form-label">Categoria Pai:</label> 
+                <InputSelect id="categoriapaiid" @bind-Value="Categoria.CategoriaPaiId" class="form-control">
+                    <option value="">Selecione uma categoria</option>
+                    @foreach (var categoria in Categorias)
+                    {
+                            <option value="@categoria.Id">@categoria.Nome</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Categoria.CategoriaPaiId" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label> 
+                <InputText id="nome" @bind-Value="Categoria.Nome" class="form-control" /> 
+                <ValidationMessage For="() => Categoria.Nome" class="text-danger" /> 
+            </div>        
+            <button type="submit" class="btn btn-primary">Create</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/categoria">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Categoria Categoria { get; set; } = new();
+    private List<Categoria> Categorias { get; set; } = new();
+    private string? ErrorMessage;
+
+    // To protect from overposting attacks, see https://learn.microsoft.com/aspnet/core/blazor/forms/#mitigate-overposting-attacks.
+    private async Task AddCategoria()
+    {
+        using var context = DbFactory.CreateDbContext();
+        try
+        {
+            // Verificar se já existe uma categoria com o mesmo nome
+            var categoriaExistente = await context.Categorias
+                .AnyAsync(c => c.Nome == Categoria.Nome);
+
+            if (categoriaExistente)
+            {
+                ErrorMessage = "Já existe uma categoria com este nome.";
+                return;
+            }
+
+            context.Categorias.Add(Categoria);
+            await context.SaveChangesAsync();
+            NavigationManager.NavigateTo("/categoria");
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Ocorreu um erro ao tentar adicionar a categoria: " + ex.Message;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Categorias = await context.Categorias.ToListAsync();
+    }
+}

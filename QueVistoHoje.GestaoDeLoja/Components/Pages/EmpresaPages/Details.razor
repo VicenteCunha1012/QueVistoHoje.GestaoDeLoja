@@ -1,0 +1,52 @@
+﻿@page "/empresas/details"
+@using Microsoft.EntityFrameworkCore
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Details</PageTitle>
+
+<h1>Details</h1>
+
+<div>
+    <h2>Empresa</h2>
+    <hr />
+    @if (empresa is null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else {
+        <dl class="row">
+            <dt class="col-sm-2">Nome</dt>
+            <dd class="col-sm-10">@empresa.Nome</dd>
+            <dt class="col-sm-2">Morada</dt>
+            <dd class="col-sm-10">@empresa.Morada</dd>
+            <dt class="col-sm-2">Imagem</dt>
+            <dd class="col-sm-10">@empresa.Imagem</dd>
+            <dt class="col-sm-2">Nif</dt>
+            <dd class="col-sm-10">@empresa.Nif</dd>
+        </dl>
+        <div>
+            <a href="@($"/empresas/edit?id={empresa.Id}")">Edit</a> |
+            <a href="@($"/empresas")">Back to List</a>
+        </div>
+    }
+</div>
+
+@code {
+    private Empresa? empresa;
+
+    [SupplyParameterFromQuery]
+    private int Id { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        empresa = await context.Empresas.FirstOrDefaultAsync(m => m.Id == Id);
+
+        if (empresa is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

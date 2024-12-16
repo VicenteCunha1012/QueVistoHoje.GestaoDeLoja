@@ -1,0 +1,45 @@
+﻿@page "/categoria"
+@attribute [Authorize(Roles = "Administrador, Funcionário")]
+@using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.QuickGrid
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@using QueVistoHoje.GestaoDeLoja.Data
+@implements IAsyncDisposable
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+
+<PageTitle>Categorias</PageTitle>
+
+<h1>Categorias</h1>
+<p>
+    <a href="categoria/create">Criar nova Categoria</a>
+</p>
+<QuickGrid Class="table" Items="context.Categorias">
+    <PropertyColumn Property="categoria => categoria.Id" />
+    <PropertyColumn Property="categoria =>  GetParentCategoryName(categoria.CategoriaPaiId)" Title="Categoria Pai"/>
+    <PropertyColumn Property="categoria => categoria.Nome" />
+<TemplateColumn Context="categoria">
+    <a href="@($"categoria/edit?id={categoria.Id}")">Edit</a> |
+    <a href="@($"categoria/details?id={categoria.Id}")">Details</a> |
+    <a href="@($"categoria/delete?id={categoria.Id}")">Delete</a>
+</TemplateColumn>
+</QuickGrid>
+@code {
+private ApplicationDbContext context = default!;
+
+protected override void OnInitialized()
+{
+    context = DbFactory.CreateDbContext();
+}
+
+private string GetParentCategoryName(int? parentId)
+{
+    if (parentId.HasValue)
+    {
+        var parentCategory = context.Categorias.FirstOrDefault(c => c.Id == parentId);
+        return parentCategory?.Nome ?? "Sem categoria pai";
+    }
+    return "Sem categoria pai";
+}
+
+public async ValueTask DisposeAsync() => await context.DisposeAsync();
+}

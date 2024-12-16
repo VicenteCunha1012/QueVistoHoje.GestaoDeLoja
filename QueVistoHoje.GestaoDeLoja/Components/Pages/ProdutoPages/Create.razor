@@ -1,0 +1,132 @@
+﻿@page "/produtos/create"
+@using Microsoft.EntityFrameworkCore
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+@inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Create Produto</PageTitle>
+
+<h1>Create</h1>
+
+<h2>Produto</h2>
+<hr />
+<div class="row">
+    <div class="col-md-8">
+        <EditForm method="post" Model="Produto" OnValidSubmit="AddProduto" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+            <div class="mb-3">
+                <label for="nome" class="form-label">Nome:</label>
+                <InputText id="nome" @bind-Value="Produto.Nome" class="form-control" />
+                <ValidationMessage For="() => Produto.Nome" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="descricao" class="form-label">Descrição:</label>
+                <InputText id="descricao" @bind-Value="Produto.Descricao" class="form-control" />
+                <ValidationMessage For="() => Produto.Descricao" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="preco" class="form-label">Preço:</label>
+                <InputNumber id="preco" @bind-Value="Produto.Preco" class="form-control" />
+                <ValidationMessage For="() => Produto.Preco" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="stock" class="form-label">Stock:</label>
+                <InputNumber id="stock" @bind-Value="Produto.Stock" class="form-control" />
+                <ValidationMessage For="() => Produto.Stock" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="imagem" class="form-label">Imagem:</label>
+                <InputText id="imagem" @bind-Value="Produto.Imagem" class="form-control" />
+                <ValidationMessage For="() => Produto.Imagem" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="promocao" class="form-label">Promoção:</label>
+                <InputCheckbox id="promocao" @bind-Value="Produto.Promocao" class="form-check-input" />
+                <ValidationMessage For="() => Produto.Promocao" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="estado" class="form-label">Estado:</label>
+                <InputText id="estado" @bind-Value="Produto.Estado" class="form-control" />
+                <ValidationMessage For="() => Produto.Estado" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="empresa" class="form-label">Empresa:</label>
+                <InputSelect @bind-Value="Produto.EmpresaId" class="form-control">
+                    <option value="0">Selecione uma empresa</option>
+                    @foreach (var empresa in Empresas)
+                    {
+                        <option value="@empresa.Id">@empresa.Nome</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Produto.EmpresaId" class="text-danger" />
+            </div>
+
+            @foreach (var index in Enumerable.Range(0, CategoriasSelecionadas.Count))
+            {
+                <div class="mb-3">
+                    <label for="categoria" class="form-label">Categoria:</label>
+                    <InputSelect @bind-Value="CategoriasSelecionadas[index]" class="form-control">
+                        <option value="0">Selecione uma categoria</option>
+                        @foreach (var categoria in Categorias)
+                        {
+                            <option value="@categoria.Id">@categoria.Nome</option>
+                        }
+                    </InputSelect>
+                </div>
+            }
+
+            <button type="button" class="btn btn-secondary" @onclick="AdicionarCategoria">Adicionar Categoria</button>
+            <button type="submit" class="btn btn-primary">Criar</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <a href="/produtos">Back to List</a>
+</div>
+
+@code {
+    [SupplyParameterFromForm]
+    private Produto Produto { get; set; } = new();
+    private List<Categoria> Categorias { get; set; } = new();
+    private List<Empresa> Empresas { get; set; } = new();
+    private List<int> CategoriasSelecionadas { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var context = DbFactory.CreateDbContext();
+        Categorias = await context.Categorias.ToListAsync();
+        Empresas = await context.Empresas.ToListAsync();
+        CategoriasSelecionadas.Add(0);
+    }
+
+    private void AdicionarCategoria()
+    {
+        CategoriasSelecionadas.Add(0);
+    }
+
+    private async Task AddProduto()
+    {
+        using var context = DbFactory.CreateDbContext();
+        // Adiciona o produto ao contexto
+        context.Produtos.Add(Produto);
+        // Guarda as mudanças para obter o ID do produto
+        await context.SaveChangesAsync();
+        // Mapeia as categorias selecionadas para o produto
+        var categorias = CategoriasSelecionadas
+        .Where(id => id != 0)
+        .Select(id => context.Categorias.Find(id))
+        .ToList();
+        foreach (var categoria in categorias)
+        {
+            context.Categorias.Attach(categoria);
+            Produto.Categoria.Add(categoria);
+        }
+        // Atualiza o produto com as categorias associadas
+        context.Produtos.Update(Produto);
+        // Guarda as mudanças para criar a relação
+        await context.SaveChangesAsync();
+        NavigationManager.NavigateTo("/produtos");
+    }
+}
