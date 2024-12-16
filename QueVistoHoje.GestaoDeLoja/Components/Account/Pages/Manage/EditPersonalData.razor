@@ -1,0 +1,118 @@
+﻿@page "/Account/Manage/EditPersonalData"
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using QueVistoHoje.GestaoDeLoja.Data
+@using QueVistoHoje.GestaoDeLoja.Data.Entities
+
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject ILogger<EditPersonalData> Logger
+
+<PageTitle>Editar os meus dados</PageTitle>
+
+<h3>Editar os meus dados</h3>
+<StatusMessage Message="@message" />
+<div class="row">
+    <div class="col-md-6">
+        <EditForm Model="Input" FormName="edit-personal-data" OnValidSubmit="OnValidSubmitAsync" method="post">
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" role="alert" />
+
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Nome" class="form-control" placeholder="Nome" />
+                <label for="nome" class="form-label">Nome</label>
+                <ValidationMessage For="() => Input.Nome" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Nif" class="form-control" placeholder="NIF" />
+                <label for="nif" class="form-label">NIF</label>
+                <ValidationMessage For="() => Input.Nif" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.Morada" class="form-control" placeholder="Morada" />
+                <label for="morada" class="form-label">Morada</label>
+                <ValidationMessage For="() => Input.Morada" class="text-danger" />
+            </div>
+            <div class="form-floating mb-3">
+                <InputText @bind-Value="Input.ImageUrl" class="form-control" placeholder="URL da imagem" />
+                <label for="imageUrl" class="form-label">URL da imagem</label>
+                <ValidationMessage For="() => Input.ImageUrl" class="text-danger" />
+            </div>
+
+            <button type="submit" class="w-100 btn btn-lg btn-primary">Guardar alterações</button>
+        </EditForm>
+    </div>
+</div>
+
+@code {
+    private string? message;
+    private ApplicationUser user = default!;
+
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        // Preencher os campos do formulário com os dados do usuário atual
+        /*Input.Nome = user.Nome;
+        Input.Nif = user.NIF;
+        Input.Morada = user.Morada;
+        Input.ImageUrl = user.Imagem;
+        */
+        Input.Nome = user.Nome;
+        Input.Nif = user.NIF;
+        Input.Morada = user.Morada;
+        Input.ImageUrl = user.Imagem;
+        
+    }
+
+    private async Task OnValidSubmitAsync()
+    {
+        // Obtenha o utilizador mais recente para garantir o rastreamento correto
+        user = await UserAccessor.GetRequiredUserAsync(HttpContext);
+
+        //Verifica se os valores do formulario estao chegando
+        Console.WriteLine($"Valores do Formulário: {HttpContext.Request.Form["Input.Nome"]}, {HttpContext.Request.Form["Input.Nif"]}, {HttpContext.Request.Form["Input.Morada"]}, {HttpContext.Request.Form["Input.ImageUrl"]}");
+
+        // Atualiza os dados do utilizador com os valores do InputModel
+        Console.WriteLine("\n\n\n\n\n" + Input.Nome + " " + Input.Nif + " " + Input.Morada + " " + Input.ImageUrl);
+
+        user.Nome = Input.Nome;
+        user.NIF = Input.Nif;
+        user.Morada = Input.Morada;
+        user.Imagem = Input.ImageUrl;
+
+        var updateResult = await UserManager.UpdateAsync(user);
+        if (!updateResult.Succeeded)
+        {
+            foreach (var error in updateResult.Errors)
+            {
+                Console.WriteLine($"Erro ao atualizar os dados: {error.Description}");
+            }
+
+            message = $"Erro ao atualizar os dados: {string.Join(",", updateResult.Errors.Select(error => error.Description))}";
+            return;
+        }
+
+        await SignInManager.RefreshSignInAsync(user);
+        Logger.LogInformation("User updated personal data successfully.");
+
+        RedirectManager.RedirectToCurrentPageWithStatus("Os seus dados foram atualizados", HttpContext);
+    }
+
+    private sealed class InputModel
+    {
+        public string? Nome { get; set; }
+        public string? Nif { get; set; }
+        public string? Morada { get; set; }
+        public string? ImageUrl { get; set; }
+    }
+}

@@ -36,9 +36,9 @@ private string GetParentCategoryName(int? parentId)
     if (parentId.HasValue)
     {
         var parentCategory = context.Categorias.FirstOrDefault(c => c.Id == parentId);
-        return parentCategory?.Nome ?? "Sem categoria pai";
+        return parentCategory?.Nome ?? "Nenhuma";
     }
-    return "Sem categoria pai";
+    return "Nenhuma";
 }
 
 public async ValueTask DisposeAsync() => await context.DisposeAsync();
