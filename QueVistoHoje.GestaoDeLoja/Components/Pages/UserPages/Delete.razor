@@ -1,0 +1,48 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using QueVistoHoje.GestaoDeLoja.Data
+@inject UserManager<ApplicationUser> UserManager
+
+@if (User != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                    <button type="button" class="close" @onclick="OnClose">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir o utilizador @User.UserName?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="OnClose">Cancelar</button>
+                    <button type="button" class="btn btn-danger" @onclick="DeleteUser">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public ApplicationUser User { get; set; }
+
+    [Parameter]
+    public EventCallback OnUserDeleted { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+    private async Task DeleteUser()
+    {
+        if (User != null)
+        {
+            var result = await UserManager.DeleteAsync(User);
+            if (result.Succeeded)
+            {
+                await OnUserDeleted.InvokeAsync();
+            }
+        }
+    }
+}

@@ -16,7 +16,12 @@
 
 <QuickGrid Class="table" Items="context.Transportadoras">
     <PropertyColumn Property="transportadora => transportadora.Nome" />
-    <PropertyColumn Property="transportadora => transportadora.Imagem" />
+    <TemplateColumn title="Imagem" Context="transportadora">
+        <img src="@transportadora.Imagem"
+             alt="Imagem do Produto"
+             style="max-width: 50px; max-height: 50px;"
+             onerror="this.src='https://th.bing.com/th/id/R.46c32d2f457c911236422a6fce18575d?rik=1WWfIiIAxif%2fDA&pid=ImgRaw&r=0';" />
+    </TemplateColumn>
 
     <TemplateColumn Context="transportadora">
         <a href="@($"transportadoras/edit?id={transportadora.Id}")">Edit</a> |

@@ -1,0 +1,131 @@
+﻿@page "/utilizadores/editar/{UserId}"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using QueVistoHoje.GestaoDeLoja.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager NavigationManager
+
+<h1>Editar Utilizador</h1>
+
+@if (user == null)
+{
+    <p><em>A carregar...</em></p>
+}
+else
+{
+    <EditForm Model="user" OnValidSubmit="UpdateUser">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label>Nome:</label>
+            <InputText @bind-Value="user.Nome" class="form-control" />
+            <ValidationMessage For="@(() => user.Nome)" />
+        </div>
+        <div class="form-group">
+            <label>Email:</label>
+            <InputText @bind-Value="user.Email" class="form-control" />
+            <ValidationMessage For="@(() => user.Email)" />
+        </div>
+        <div class="form-group">
+            <label>Email Confirmado:</label>
+            <InputCheckbox @bind-Value="user.EmailConfirmed" class="form-check-input" />
+        </div>
+        <div class="form-group">
+            <label>Cargos:</label>
+            <div class="form-check">
+                <InputCheckbox @bind-Value="IsAdmin" class="form-check-input" id="admin" />
+                <label class="form-check-label" for="admin">Administrador</label>
+            </div>
+            <div class="form-check">
+                <InputCheckbox @bind-Value="IsFuncionario" class="form-check-input" id="funcionario" />
+                <label class="form-check-label" for="funcionario">Funcionário</label>
+            </div>
+            <div class="form-check">
+                <InputCheckbox @bind-Value="IsCliente" class="form-check-input" id="cliente" />
+                <label class="form-check-label" for="cliente">Cliente</label>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-secondary" @onclick="CancelEdit">Cancelar</button>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public string UserId { get; set; }
+
+    private ApplicationUser user;
+    private List<IdentityRole> roles = new List<IdentityRole>();
+    private bool IsAdmin { get; set; }
+    private bool IsFuncionario { get; set; }
+    private bool IsCliente { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserId != null)
+        {
+            user = await UserManager.FindByIdAsync(UserId);
+        }
+        roles = await RoleManager.Roles.ToListAsync();
+        await LoadUserRoles();
+    }
+
+    private async Task LoadUserRoles()
+    {
+        if (user != null)
+        {
+            var userRoles = await UserManager.GetRolesAsync(user);
+            IsAdmin = userRoles.Contains("Administrador");
+            IsFuncionario = userRoles.Contains("Funcionario");
+            IsCliente = userRoles.Contains("Cliente");
+        }
+    }
+    private async Task UpdateUser()
+    {
+        if (user != null)
+        {
+            var userRoles = await UserManager.GetRolesAsync(user);
+            if (IsAdmin && !userRoles.Contains("Administrador"))
+            {
+                await UserManager.AddToRoleAsync(user, "Administrador");
+            }
+            else if (!IsAdmin && userRoles.Contains("Administrador"))
+            {
+                await UserManager.RemoveFromRoleAsync(user, "Administrador");
+            }
+            if (IsFuncionario && !userRoles.Contains("Funcionário"))
+            {
+                await UserManager.AddToRoleAsync(user, "Funcionário");
+            }
+            else if (!IsFuncionario && userRoles.Contains("Funcionário"))
+            {
+                await UserManager.RemoveFromRoleAsync(user, "Funcionário");
+            }
+            if (IsCliente && !userRoles.Contains("Cliente"))
+            {
+                await UserManager.AddToRoleAsync(user, "Cliente");
+            }
+            else if (!IsCliente && userRoles.Contains("Cliente"))
+            {
+                await UserManager.RemoveFromRoleAsync(user, "Cliente");
+            }
+            var result = await UserManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                NavigationManager.NavigateTo("/utilizadores");
+            }
+            else
+            {
+                Console.WriteLine($"Erro ao atualizar utilizador: {string.Join(", ", result.Errors)}");
+            }
+
+        }
+    }
+    private void CancelEdit()
+    {
+        NavigationManager.NavigateTo("/utilizadores");
+    }
+}

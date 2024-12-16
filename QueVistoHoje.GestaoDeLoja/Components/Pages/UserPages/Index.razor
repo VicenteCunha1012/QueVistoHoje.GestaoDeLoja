@@ -1,0 +1,133 @@
+﻿@page "/utilizadores"
+@using Microsoft.AspNetCore.Identity
+@using Microsoft.EntityFrameworkCore
+@using QueVistoHoje.GestaoDeLoja.Data
+@inject ApplicationDbContext DbContext
+@inject UserManager<ApplicationUser> UserManager
+@inject RoleManager<IdentityRole> RoleManager
+@inject NavigationManager NavigationManager
+
+@attribute [Authorize(Roles = "Administrador")]
+
+<h1>Gestão de Utilizadores</h1>
+
+@if (users == null)
+{
+    <p><em>A carregar...</em></p>
+}
+else if (users.Count == 0)
+{
+    <p><em>Não existem utilizadores registados.</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nome de utilizador</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Email Confirmado</th>
+                <th>Roles</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.UserName</td>
+                    <td>@user.Nome</td>
+                    <td>@user.Email</td>
+                    <td>
+                        @if (user.EmailConfirmed)
+                        {
+                            <span>Sim</span>
+                        }
+                        else
+                        {
+                            <span>Não</span>
+                        }
+                    </td>
+                    <td>
+                        @if (userRoles.ContainsKey(user.Id))
+                        {
+                            @foreach (var role in userRoles[user.Id])
+                            {
+                                @if (role == "Cliente")
+                                {
+                                    <span class="badge bg-warning text-dark">Cliente</span>
+                                }
+                                else if (role == "Funcionário")
+                                {
+                                    <span class="badge bg-success">Funcionário</span>
+                                }
+                                else if (role == "Administrador")
+                                {
+                                    <span class="badge bg-primary">Administrador</span>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <em>Sem Roles</em>
+                        }
+                    </td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" @onclick="() => EditUser(user)">Editar</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => ShowDeleteConfirmation(user)">Excluir</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (userToDelete != null)
+{
+    <UserDeleteConfirmation @key="userToDelete.Id" User="userToDelete" OnUserDeleted="OnUserDeleted" OnClose="CloseDeleteModal"></UserDeleteConfirmation>
+}
+
+@code {
+    private List<ApplicationUser> users;
+    private Dictionary<string, List<string>> userRoles = new Dictionary<string, List<string>>();
+    private ApplicationUser? selectedUser;
+    private ApplicationUser? userToDelete;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        users = await UserManager.Users.ToListAsync();
+        userRoles.Clear();
+        foreach (var user in users)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            userRoles[user.Id] = roles.ToList();
+        }
+    }
+
+    private void EditUser(ApplicationUser user)
+    {
+        NavigationManager.NavigateTo($"/utilizadores/editar/{user.Id}");
+    }
+
+    private void ShowDeleteConfirmation(ApplicationUser user)
+    {
+        userToDelete = user;
+        StateHasChanged();
+    }
+    private void CloseDeleteModal()
+    {
+        userToDelete = null;
+        StateHasChanged();
+    }
+    private async Task OnUserDeleted()
+    {
+        await LoadUsers();
+        CloseDeleteModal();
+    }
+}

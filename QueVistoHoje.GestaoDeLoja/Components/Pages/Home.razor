@@ -1,7 +1,11 @@
 ﻿@page "/"
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
+@using Microsoft.AspNetCore.Identity
+@using QueVistoHoje.GestaoDeLoja.Data
 @inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager<ApplicationUser> UserManager
 
 <PageTitle>Home</PageTitle>
 
@@ -11,17 +15,33 @@
 
 <div class="container">
     <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title"><a href="/produtos">Produtos</a></h5>
-                    <p class="card-text">Número de Produtos: @NumeroProdutos</p>
-                    <a href="/produtos/create" class="btn btn-primary">Adicionar Produto</a>
+        @if (CanViewInfo)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><a href="/produtos">Produtos</a></h5>
+                        <p class="card-text">Número de Produtos: @NumeroProdutos</p>
+                        <a href="/produtos/create" class="btn btn-primary">Adicionar Produto</a>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-6 mb-4">
-            <div class="card">
+        }
+        else
+        {
+            <div class="col-md-6 mb-4">
+               <div class="card">
+                    <div class="card-body">
+                      <h5 class="card-title">Produtos</h5>
+                        <p>@CantViewError</p>
+                 </div>
+               </div>
+            </div>
+        }
+        @if (CanViewInfo)
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
                 <div class="card-body">
                     <h5 class="card-title"><a href="/categoria">Categorias</a></h5>
                     <p class="card-text">Número de Categorias: @NumeroCategorias</p>
@@ -29,15 +49,45 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title"><a href="/empresas">Empresas</a></h5>
-                    <p class="card-text">Número de Empresas: @NumeroEmpresas</p>
-                    <a href="/empresas/create" class="btn btn-primary">Adicionar Empresa</a>
+        }
+        else
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Categorias</h5>
+                        <p>@CantViewError</p>
+                    </div>
                 </div>
             </div>
-        </div>
+        }
+        @if(CanViewInfo)
+        {
+
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title"><a href="/empresas">Empresas</a></h5>
+                        <p class="card-text">Número de Empresas: @NumeroEmpresas</p>
+                        <a href="/empresas/create" class="btn btn-primary">Adicionar Empresa</a>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Empresas</h5>
+                        <p>@CantViewError</p>
+                    </div>
+                </div>
+            </div>
+        }
+        @if(CanViewInfo)
+        {
+
         <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
@@ -47,6 +97,20 @@
                 </div>
             </div>
         </div>
+        }
+        else
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Encomendas</h5>
+                        <p>@CantViewError</p>
+                    </div>
+                </div>
+            </div>
+        }
+        @if(CanViewInfo)
+        {
         <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
@@ -56,6 +120,18 @@
                 </div>
             </div>
         </div>
+        }
+        else
+        {
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Categorias</h5>
+                        <p>@CantViewError</p>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -65,6 +141,10 @@
     private int NumeroEmpresas { get; set; }
     private int NumeroEncomendas { get; set; }
     private int NumeroTransportadoras { get; set; }
+    private bool CanViewInfo { get; set; }
+    private bool IsAdmin { get; set; }
+
+    private String CantViewError = "Faça login como funcionário ou administrador para aceder esta informação";
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,5 +154,41 @@
         NumeroEmpresas = await context.Empresas.CountAsync();
         NumeroEncomendas = await context.Encomendas.CountAsync();
         NumeroTransportadoras = await context.Transportadoras.CountAsync();
+
+        CanViewInfo = await CheckUserRole();
+        IsAdmin = await CheckIsAdmin();
+    }
+    private async Task<bool> CheckIsAdmin()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        if (user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if (appUser != null)
+            {
+                var roles = await UserManager.GetRolesAsync(appUser);
+                return roles.Contains("Administrador");
+            }
+        }
+        return false;
+    }    
+
+       private async Task<bool> CheckUserRole()
+    {
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+          if(user.Identity != null && user.Identity.IsAuthenticated)
+        {
+            var appUser = await UserManager.GetUserAsync(user);
+            if(appUser != null)
+            {
+                var roles = await UserManager.GetRolesAsync(appUser);
+                  return roles.Contains("Administrador") || roles.Contains("Funcionário");
+            }
+         }
+       return false;
     }
 }
