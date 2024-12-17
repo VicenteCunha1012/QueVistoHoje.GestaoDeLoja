@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using QueVistoHoje.GestaoDeLoja.Data.Entities;
 
 namespace QueVistoHoje.GestaoDeLoja.Data
 {
@@ -9,6 +11,8 @@ namespace QueVistoHoje.GestaoDeLoja.Data
         public string? NIF { get; set; }
         public string? Morada { get; set; }
         public string? Imagem { get; set; }
+        public DbSet<EncomendaProduto> EncomendaProdutos { get; set; }
+
 
     }
 

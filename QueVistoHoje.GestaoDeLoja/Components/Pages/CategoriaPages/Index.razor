@@ -1,5 +1,5 @@
 ﻿@page "/categoria"
-@attribute [Authorize(Roles = "Funcionário")]
+@attribute [Authorize(Roles = "Funcionário, Administrador")]
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using QueVistoHoje.GestaoDeLoja.Data.Entities

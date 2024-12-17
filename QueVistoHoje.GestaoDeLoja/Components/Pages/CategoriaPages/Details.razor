@@ -1,5 +1,5 @@
 ﻿@page "/categoria/details"
-@attribute [Authorize(Roles = "Funcionário")]
+@attribute [Authorize(Roles = "Funcionário, Administrador")]
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
 @inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory

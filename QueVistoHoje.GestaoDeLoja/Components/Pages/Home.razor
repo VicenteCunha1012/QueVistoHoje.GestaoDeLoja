@@ -119,9 +119,8 @@
     private int NumeroEmpresas { get; set; }
     private int NumeroEncomendas { get; set; }
     private bool CanViewInfo { get; set; }
-    private bool IsAdmin { get; set; }
 
-    private String CantViewError = "Faça login como funcionário ou administrador para aceder esta informação";
+    private String CantViewError = "Faça login como funcionário para aceder esta informação";
 
     protected override async Task OnInitializedAsync()
     {
@@ -132,25 +131,8 @@
         NumeroEncomendas = await context.Encomendas.CountAsync();
 
         CanViewInfo = await CheckUserRole();
-        IsAdmin = await CheckIsAdmin();
     }
-    private async Task<bool> CheckIsAdmin()
-    {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (user.Identity != null && user.Identity.IsAuthenticated)
-        {
-            var appUser = await UserManager.GetUserAsync(user);
-            if (appUser != null)
-            {
-                var roles = await UserManager.GetRolesAsync(appUser);
-                return roles.Contains("Administrador");
-            }
-        }
-        return false;
-    }    
-
+    
        private async Task<bool> CheckUserRole()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
@@ -162,7 +144,7 @@
             if(appUser != null)
             {
                 var roles = await UserManager.GetRolesAsync(appUser);
-                  return roles.Contains("Administrador") || roles.Contains("Funcionário");
+                  return roles.Contains("Funcionário") || roles.Contains("Administrador");
             }
          }
        return false;

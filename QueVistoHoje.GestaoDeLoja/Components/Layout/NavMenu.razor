@@ -36,7 +36,7 @@
         </AuthorizeView>
 
         @* Funcionário Links *@
-        <AuthorizeView Roles="Funcionário">
+        <AuthorizeView Roles="Funcionário, Administrador">
             <Authorized Context="funcionarioContext">
                 <!--Home--><div class="nav-item px-3">
                     <NavLink class="nav-link" href="" Match="NavLinkMatch.All">

@@ -1,5 +1,5 @@
 ﻿@page "/encomenda"
-@attribute [Authorize(Roles = "Funcionário")]
+@attribute [Authorize(Roles = "Funcionário, Administrador")]
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.QuickGrid
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
@@ -16,6 +16,7 @@
 </p>
 
 <QuickGrid Class="table" Items="context.Encomendas">
+    <PropertyColumn Title="Utilizador" Property="encomenda => GetUserEmail(encomenda)" />
     <PropertyColumn Property="encomenda => encomenda.Data" />
     <PropertyColumn Property="encomenda => encomenda.Estado" />
     <PropertyColumn Property="encomenda => encomenda.EnderecoEntrega" />
@@ -34,6 +35,17 @@
     {
         context = DbFactory.CreateDbContext();
     }
+
+    private string? GetUserEmail(Encomenda encomenda)
+    {
+        if (encomenda?.Cliente != null && context?.Users != null)
+        {
+            return context.Users.Find(encomenda.Cliente.Id)?.Email;
+        }
+        return "N/A";
+    }
+
+
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }

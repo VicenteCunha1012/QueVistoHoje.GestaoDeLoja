@@ -1,5 +1,5 @@
 ﻿@page "/categoria/create"
-@attribute [Authorize(Roles = "Funcionário")]
+@attribute [Authorize(Roles = "Funcionário, Administrador")]
 @rendermode InteractiveServer
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities

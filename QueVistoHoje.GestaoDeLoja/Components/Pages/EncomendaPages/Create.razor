@@ -1,5 +1,5 @@
 ﻿@page "/encomenda/create"
-@attribute [Authorize(Roles = "Funcionário")]
+@attribute [Authorize(Roles = "Funcionário, Administrador")]
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
 @using Microsoft.AspNetCore.Identity
@@ -53,7 +53,7 @@
 
             <div class="mb-3">
                 <label class="form-label">Produtos:</label>
-                @foreach (var produto in Encomenda.Produtos)
+                @foreach (var produto in SelectedProdutos)
                 {
                     <p>@produto.Nome</p>
                 }
@@ -101,6 +101,8 @@
     private List<ApplicationUser> Clientes { get; set; } = new();
     private List<Produto> Produtos { get; set; } = new();
 
+    private List<Produto> SelectedProdutos { get; set; } = new();
+
     private string? SelectedClienteIdString { get; set; }
 
     private bool ShowProductSelection { get; set; } = false;
@@ -116,15 +118,15 @@
         if (clienteRole != null)
         {
             Clientes = await context.UserRoles
-              .Where(ur => ur.RoleId == clienteRole.Id)
-              .Join(context.Users, ur => ur.UserId, u => u.Id, (ur, u) => u)
-               .ToListAsync();
+                .Where(ur => ur.RoleId == clienteRole.Id)
+                .Join(context.Users, ur => ur.UserId, u => u.Id, (ur, u) => u)
+                .ToListAsync();
         }
 
         // Load produtos
         Produtos = await context.Produtos.ToListAsync();
-
     }
+
     private void ToggleProductSelection()
     {
         ShowProductSelection = !ShowProductSelection;
@@ -138,8 +140,8 @@
             var product = Produtos.FirstOrDefault(x => x.Id == SelectedProductId);
             if (product != null)
             {
-                Encomenda.Produtos.Add(product);
-                SelectedProductId = 0; // Resetar a seleção
+                SelectedProdutos.Add(product);
+                SelectedProductId = 0;
             }
         }
         ShowProductSelection = false;
@@ -150,19 +152,33 @@
         using var context = DbFactory.CreateDbContext();
 
         // Set the selected cliente
-        if (!string.IsNullOrEmpty(SelectedClienteIdString) && int.TryParse(SelectedClienteIdString, out int clienteId))
+        if (!string.IsNullOrEmpty(SelectedClienteIdString))
         {
-            var cliente = await context.Users.FindAsync(clienteId);
+            var cliente = await context.Users.FindAsync(SelectedClienteIdString);
             if (cliente != null)
             {
                 Encomenda.Cliente = cliente;
             }
+            else
+            {
+                Console.WriteLine("\n\n\n\n\nCliente not found using the Id" + SelectedClienteIdString);
+            }
+        }
+        else
+        {
+            Console.WriteLine("\n\n\n\n\nSelectedClienteIdString is null or empty");
         }
 
-        
-        //Aqui, so salvamos as mudanças na encomenda em si, e nao nos produtos.
+        //Create the relationship entries
+        foreach (var produto in SelectedProdutos)
+        {
+            Encomenda.EncomendaProdutos.Add(new EncomendaProduto { ProdutoId = produto.Id });
+        }
+
+        // Save changes
         context.Encomendas.Add(Encomenda);
         await context.SaveChangesAsync();
+
         NavigationManager.NavigateTo("/encomenda");
     }
 }
