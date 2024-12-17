@@ -13,15 +13,17 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="flex-column">
+        @* Common Links (All Logged In Users) *@
         <AuthorizeView>
-            <Authorized>
-                @* Links Comuns (Qualquer User Logged In) *@
-                <!--Manager account--> <div class="nav-item px-3">
+            <Authorized Context="authContext">
+                <!--Manager account-->
+                <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Manage">
-                        <i class="icon">👤</i> @context.User.Identity?.Name
+                        <i class="icon">👤</i> @authContext.User.Identity?.Name
                     </NavLink>
                 </div>
-                <!--Logout--><div class="nav-item px-3">
+                <!--Logout-->
+                <div class="nav-item px-3">
                     <form action="Account/Logout" method="post">
                         <AntiforgeryToken />
                         <input type="hidden" name="ReturnUrl" value="@currentUrl" />
@@ -30,62 +32,55 @@
                         </button>
                     </form>
                 </div>
-
-                @* Links para Funcionários e Administradores *@
-                <AuthorizeView Roles="Funcionário, Administrador">
-                    <Authorized Context="funcionarioContext">
-                        <!--Home--><div class="nav-item px-3">
-                            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                                <i class="icon">🏠</i> Home
-                            </NavLink>
-                        </div>
-                        <!--Categorias--><div class="nav-item px-3">
-                            <NavLink class="nav-link" href="categoria">
-                                <i class="icon">🗂️</i> Categorias
-                            </NavLink>
-                        </div>
-                        <!--Produtos--><div class="nav-item px-3">
-                            <NavLink class="nav-link" href="produtos">
-                                <i class="icon">📦</i> Produtos
-                            </NavLink>
-                        </div>
-                        <!--Empresas--><div class="nav-item px-3">
-                            <NavLink class="nav-link" href="empresas">
-                                <i class="icon">🏢</i> Empresas
-                            </NavLink>
-                        </div>
-                        <!--Encomendas--><div class="nav-item px-3">
-                            <NavLink class="nav-link" href="encomenda">
-                                <i class="icon">🚚</i> Encomendas
-                            </NavLink>
-                        </div>
-                        <!--Transportadoras--><div class="nav-item px-3">
-                            <NavLink class="nav-link" href="transportadoras">
-                                <i class="icon">📦+🚚</i> Transportadoras
-                            </NavLink>
-                        </div>
-
-                        @* Links para Administradores (Dentro de Funcionário)*@
-                        <AuthorizeView Roles="Administrador">
-                            <Authorized Context="adminContext">
-                                <!--Utilizadores--><div class="nav-item px-3">
-                                    <NavLink class="nav-link" href="utilizadores">
-                                        <i class="icon">👤</i> Utilizadores
-                                    </NavLink>
-                                </div>
-                            </Authorized>
-                        </AuthorizeView>
-                    </Authorized>
-                    <NotAuthorized Context="notAuthorizedContext">
-                        <!--<div class="alert alert-danger">
-                            <p><strong>Acesso Negado!</strong> Não tem permissões para aceder a esta página.</p>
-                            <p>Contacte o administrador do sistema caso acredite que isto é um erro.</p>
-                        </div>-->
-                    </NotAuthorized>
-                </AuthorizeView>
             </Authorized>
+        </AuthorizeView>
+
+        @* Funcionário Links *@
+        <AuthorizeView Roles="Funcionário">
+            <Authorized Context="funcionarioContext">
+                <!--Home--><div class="nav-item px-3">
+                    <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                        <i class="icon">🏠</i> Home
+                    </NavLink>
+                </div>
+                <!--Categorias--><div class="nav-item px-3">
+                    <NavLink class="nav-link" href="categoria">
+                        <i class="icon">🗂️</i> Categorias
+                    </NavLink>
+                </div>
+                <!--Produtos--><div class="nav-item px-3">
+                    <NavLink class="nav-link" href="produtos">
+                        <i class="icon">📦</i> Produtos
+                    </NavLink>
+                </div>
+                <!--Empresas--><div class="nav-item px-3">
+                    <NavLink class="nav-link" href="empresas">
+                        <i class="icon">🏢</i> Empresas
+                    </NavLink>
+                </div>
+                <!--Encomendas--><div class="nav-item px-3">
+                    <NavLink class="nav-link" href="encomenda">
+                        <i class="icon">🚚</i> Encomendas
+                    </NavLink>
+                </div>
+               
+            </Authorized>
+        </AuthorizeView>
+
+        @* Administrator Links *@
+        <AuthorizeView Roles="Administrador">
+            <Authorized Context="adminContext">
+                <!--Utilizadores--><div class="nav-item px-3">
+                    <NavLink class="nav-link" href="utilizadores">
+                        <i class="icon">👤</i> Utilizadores
+                    </NavLink>
+                </div>
+            </Authorized>
+        </AuthorizeView>
+
+        @* Non-Authenticated Links *@
+        <AuthorizeView>
             <NotAuthorized>
-                @* Links para Não Autenticados *@
                 <div class="nav-item px-3">
                     <NavLink class="nav-link" href="Account/Register">
                         <i class="icon">👤</i> Registar

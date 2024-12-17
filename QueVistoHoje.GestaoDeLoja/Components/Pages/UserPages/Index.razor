@@ -1,4 +1,5 @@
 ﻿@page "/utilizadores"
+@attribute [Authorize(Roles = "Administrador")]
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data
@@ -7,7 +8,6 @@
 @inject RoleManager<IdentityRole> RoleManager
 @inject NavigationManager NavigationManager
 
-@attribute [Authorize(Roles = "Administrador")]
 
 <h1>Gestão de Utilizadores</h1>
 

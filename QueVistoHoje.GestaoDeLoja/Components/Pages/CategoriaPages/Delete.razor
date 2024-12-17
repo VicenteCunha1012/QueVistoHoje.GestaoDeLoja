@@ -1,4 +1,5 @@
 ﻿@page "/categoria/delete"
+@attribute [Authorize(Roles = "Funcionário")]
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
 @using Microsoft.Data.SqlClient

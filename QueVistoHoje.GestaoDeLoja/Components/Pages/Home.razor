@@ -109,29 +109,7 @@
                 </div>
             </div>
         }
-        @if(CanViewInfo)
-        {
-        <div class="col-md-6 mb-4">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title"><a href="/transportadora">Transportadoras</a></h5>
-                    <p class="card-text">Número de Transportadoras: @NumeroTransportadoras</p>
-                    <a href="/transportadora/create" class="btn btn-primary">Adicionar Transportadora</a>
-                </div>
-            </div>
-        </div>
-        }
-        else
-        {
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Categorias</h5>
-                        <p>@CantViewError</p>
-                    </div>
-                </div>
-            </div>
-        }
+        
     </div>
 </div>
 
@@ -140,7 +118,6 @@
     private int NumeroCategorias { get; set; }
     private int NumeroEmpresas { get; set; }
     private int NumeroEncomendas { get; set; }
-    private int NumeroTransportadoras { get; set; }
     private bool CanViewInfo { get; set; }
     private bool IsAdmin { get; set; }
 
@@ -153,7 +130,6 @@
         NumeroCategorias = await context.Categorias.CountAsync();
         NumeroEmpresas = await context.Empresas.CountAsync();
         NumeroEncomendas = await context.Encomendas.CountAsync();
-        NumeroTransportadoras = await context.Transportadoras.CountAsync();
 
         CanViewInfo = await CheckUserRole();
         IsAdmin = await CheckIsAdmin();

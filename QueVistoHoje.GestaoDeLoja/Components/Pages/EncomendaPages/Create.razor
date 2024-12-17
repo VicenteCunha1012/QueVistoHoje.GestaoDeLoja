@@ -1,4 +1,5 @@
 ﻿@page "/encomenda/create"
+@attribute [Authorize(Roles = "Funcionário")]
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
 @using Microsoft.AspNetCore.Identity
@@ -51,18 +52,6 @@
             </div>
 
             <div class="mb-3">
-                <label for="transportadora" class="form-label">Transportadora:</label>
-                <InputSelect id="transportadora" @bind-Value="SelectedTransportadoraId" class="form-control">
-                    <option value="">Selecione uma transportadora</option>
-                    @foreach (var transportadora in Transportadoras)
-                    {
-                        <option value="@transportadora.Id">@transportadora.Nome</option>
-                    }
-                </InputSelect>
-                <ValidationMessage For="() => SelectedTransportadoraId" class="text-danger" />
-            </div>
-
-            <div class="mb-3">
                 <label class="form-label">Produtos:</label>
                 @foreach (var produto in Encomenda.Produtos)
                 {
@@ -111,10 +100,8 @@
 
     private List<ApplicationUser> Clientes { get; set; } = new();
     private List<Produto> Produtos { get; set; } = new();
-    private List<Transportadora> Transportadoras { get; set; } = new();
 
     private string? SelectedClienteIdString { get; set; }
-    private int SelectedTransportadoraId { get; set; } = 0;
 
     private bool ShowProductSelection { get; set; } = false;
 
@@ -137,8 +124,6 @@
         // Load produtos
         Produtos = await context.Produtos.ToListAsync();
 
-        // Load transportadoras
-        Transportadoras = await context.Transportadoras.ToListAsync();
     }
     private void ToggleProductSelection()
     {
@@ -174,15 +159,7 @@
             }
         }
 
-        // Set the selected transportadora
-        if (SelectedTransportadoraId != 0)
-        {
-            var transportadora = await context.Transportadoras.FindAsync(SelectedTransportadoraId);
-            if (transportadora != null)
-            {
-                Encomenda.Transportadora = transportadora;
-            }
-        }
+        
         //Aqui, so salvamos as mudanças na encomenda em si, e nao nos produtos.
         context.Encomendas.Add(Encomenda);
         await context.SaveChangesAsync();

@@ -15,7 +15,6 @@ namespace QueVistoHoje.GestaoDeLoja.Data.Entities
         public ApplicationUser Cliente { get; set; }
         public List<Produto> Produtos { get; set; }
 
-        public Transportadora Transportadora { get; set; }
 
         public Encomenda()
         {

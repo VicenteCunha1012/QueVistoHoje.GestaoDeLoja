@@ -1,4 +1,5 @@
 ﻿@page "/utilizadores/editar/{UserId}"
+@attribute [Authorize(Roles = "Administrador")]
 @using Microsoft.AspNetCore.Identity
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data
@@ -79,7 +80,7 @@ else
         {
             var userRoles = await UserManager.GetRolesAsync(user);
             IsAdmin = userRoles.Contains("Administrador");
-            IsFuncionario = userRoles.Contains("Funcionario");
+            IsFuncionario = userRoles.Contains("Funcionário");
             IsCliente = userRoles.Contains("Cliente");
         }
     }

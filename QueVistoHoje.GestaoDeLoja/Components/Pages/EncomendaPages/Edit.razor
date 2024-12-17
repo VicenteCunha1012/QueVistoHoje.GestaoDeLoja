@@ -1,4 +1,5 @@
 ﻿@page "/encomenda/edit"
+@attribute [Authorize(Roles = "Funcionário")]
 @using Microsoft.EntityFrameworkCore
 @using QueVistoHoje.GestaoDeLoja.Data.Entities
 @inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory

@@ -20,7 +20,6 @@ namespace QueVistoHoje.GestaoDeLoja.Data
         public DbSet<Registo> Registos { get; set; }
         public DbSet<Encomenda> Encomendas { get; set; }
         public DbSet<Empresa> Empresas { get; set; }
-        public DbSet<Transportadora> Transportadoras { get; set; }
         public DbSet<Pagamento> Pagamentos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
