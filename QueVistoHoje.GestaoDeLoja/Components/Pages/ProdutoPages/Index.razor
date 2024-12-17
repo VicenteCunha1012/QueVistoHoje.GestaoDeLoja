@@ -34,7 +34,6 @@
     <TemplateColumn title="Empresa" Context="produto">
         @GetEmpresasNome(produto)
     </TemplateColumn>
-    <PropertyColumn Property="produto => produto.Promocao" />
     <PropertyColumn Property="produto => produto.Estado" />
     <TemplateColumn Context="produto">
         <a href="@($"produtos/edit?id={produto.Id}")">Edit</a> |

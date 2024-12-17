@@ -17,7 +17,6 @@ namespace QueVistoHoje.GestaoDeLoja.Data.Entities
         public decimal Preco { get; set; }
         public int Stock { get; set; }
         public string Imagem { get; set; }
-        public bool Promocao { get; set; }
         public string Estado { get; set; }
 
         public int EmpresaId { get; set; } // Chave estrangeira

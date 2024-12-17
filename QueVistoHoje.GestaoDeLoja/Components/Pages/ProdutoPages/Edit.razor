@@ -49,11 +49,6 @@ else
                     <ValidationMessage For="() => Produto.Imagem" class="text-danger" />
                 </div>
                 <div class="mb-3">
-                    <label for="promocao" class="form-label">Promocao:</label>
-                    <InputCheckbox id="promocao" @bind-Value="Produto.Promocao" class="form-check-input" />
-                    <ValidationMessage For="() => Produto.Promocao" class="text-danger" />
-                </div>
-                <div class="mb-3">
                     <label for="estado" class="form-label">Estado:</label>
                     <InputText id="estado" @bind-Value="Produto.Estado" class="form-control" />
                     <ValidationMessage For="() => Produto.Estado" class="text-danger" />
