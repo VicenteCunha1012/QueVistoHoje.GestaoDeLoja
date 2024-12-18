@@ -7,45 +7,59 @@
 @implements IAsyncDisposable
 @inject IDbContextFactory<QueVistoHoje.GestaoDeLoja.Data.ApplicationDbContext> DbFactory
 
-<PageTitle>Index</PageTitle>
+<PageTitle>Encomendas</PageTitle>
 
-<h1>Index</h1>
+<h1>Lista de Encomendas</h1>
 
 <p>
-    <a href="encomenda/create">Create New</a>
+    <a href="encomenda/create">Criar Nova Encomenda</a>
 </p>
 
-<QuickGrid Class="table" Items="context.Encomendas">
+<QuickGrid Class="table" Items="encomendasQueryable" TGridItem="Encomenda">
     <PropertyColumn Title="Utilizador" Property="encomenda => GetUserEmail(encomenda)" />
-    <PropertyColumn Property="encomenda => encomenda.Data" />
-    <PropertyColumn Property="encomenda => encomenda.Estado" />
-    <PropertyColumn Property="encomenda => encomenda.EnderecoEntrega" />
-
+    <PropertyColumn Title="Data" Property="encomenda => encomenda.Data" />
+    <PropertyColumn Title="Estado" Property="encomenda => encomenda.Estado" />
+    <PropertyColumn Title="Endereço" Property="encomenda => encomenda.EnderecoEntrega" />
+    <TemplateColumn Title="Produtos" Context="encomenda">
+        @foreach (var produto in GetProdutosDaEncomenda(encomenda))
+        {
+            <p>@produto.Nome</p>
+        }
+    </TemplateColumn>
     <TemplateColumn Context="encomenda">
-        <a href="@($"encomenda/edit?id={encomenda.Id}")">Edit</a> |
-        <a href="@($"encomenda/details?id={encomenda.Id}")">Details</a> |
-        <a href="@($"encomenda/delete?id={encomenda.Id}")">Delete</a>
+        <a href="@($"encomenda/edit?id={encomenda.Id}")">Editar</a> |
+        <a href="@($"encomenda/details?id={encomenda.Id}")">Detalhes</a> |
+        <a href="@($"encomenda/delete?id={encomenda.Id}")">Eliminar</a>
     </TemplateColumn>
 </QuickGrid>
 
 @code {
     private ApplicationDbContext context = default!;
+    private IQueryable<Encomenda> encomendasQueryable;
 
     protected override void OnInitialized()
     {
         context = DbFactory.CreateDbContext();
+        LoadEncomendas();
+    }
+
+    private void LoadEncomendas()
+    {
+        encomendasQueryable = context.Encomendas
+            .Include(e => e.Cliente)
+            .Include(e => e.EncomendaProdutos)
+            .ThenInclude(ep => ep.Produto);
     }
 
     private string? GetUserEmail(Encomenda encomenda)
     {
-        if (encomenda?.Cliente != null && context?.Users != null)
-        {
-            return context.Users.Find(encomenda.Cliente.Id)?.Email;
-        }
-        return "N/A";
+        return encomenda?.Cliente?.Email ?? "N/A";
     }
 
-
+    private List<Produto> GetProdutosDaEncomenda(Encomenda encomenda)
+    {
+        return encomenda.EncomendaProdutos.Select(ep => ep.Produto).ToList();
+    }
 
     public async ValueTask DisposeAsync() => await context.DisposeAsync();
 }
