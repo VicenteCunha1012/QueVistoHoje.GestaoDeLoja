@@ -17,10 +17,8 @@ namespace QueVistoHoje.GestaoDeLoja.Data
 
         public DbSet<Categoria> Categorias { get; set; }
         public DbSet<Produto> Produtos { get; set; }
-        public DbSet<Registo> Registos { get; set; }
         public DbSet<Encomenda> Encomendas { get; set; }
         public DbSet<Empresa> Empresas { get; set; }
-        public DbSet<Pagamento> Pagamentos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {   

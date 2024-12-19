@@ -18,8 +18,9 @@
 <QuickGrid Class="table" Items="encomendasQueryable" TGridItem="Encomenda">
     <PropertyColumn Title="Utilizador" Property="encomenda => GetUserEmail(encomenda)" />
     <PropertyColumn Title="Data" Property="encomenda => encomenda.Data" />
-    <PropertyColumn Title="Estado" Property="encomenda => encomenda.Estado" />
-    <PropertyColumn Title="Endereço" Property="encomenda => encomenda.EnderecoEntrega" />
+    <PropertyColumn Title="Estado" Property="encomenda => Encomenda.GetEstadoString(encomenda.Estado)" />
+    <PropertyColumn Title="Método de Pagamento" Property="encomenda => Encomenda.GetMetodoPagamentoString(encomenda.MetodoPagamento)" />
+    <PropertyColumn Title="Endereço" Property="encomenda =>  encomenda.EnderecoEntrega" />
     <TemplateColumn Title="Produtos" Context="encomenda">
         @foreach (var produto in GetProdutosDaEncomenda(encomenda))
         {

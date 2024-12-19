@@ -40,8 +40,26 @@
             </div>
 
             <div class="mb-3">
+                <label for="metodoPagamento" class="form-label">Método de Pagamento:</label>
+                <InputSelect id="metodoPagamento" @bind-Value="Encomenda.MetodoPagamento" class="form-control">
+                    <option value="">Selecione um método de pagamento</option>
+                    @foreach (MetodoPagamento metodo in Enum.GetValues(typeof(MetodoPagamento)))
+                    {
+                        <option value="@metodo"> @Encomenda.GetMetodoPagamentoString(metodo)</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Encomenda.MetodoPagamento" class="text-danger" />
+            </div>
+
+            <div class="mb-3">
                 <label for="estado" class="form-label">Estado:</label>
-                <InputText id="estado" @bind-Value="Encomenda.Estado" class="form-control" />
+                <InputSelect id="estado" @bind-Value="Encomenda.Estado" class="form-control">
+                    <option value="">Selecione um estado</option>
+                    @foreach (EncomendaState estado in Enum.GetValues(typeof(EncomendaState)))
+                    {
+                        <option value="@estado">@Encomenda.GetEstadoString(estado)</option>
+                    }
+                </InputSelect>
                 <ValidationMessage For="() => Encomenda.Estado" class="text-danger" />
             </div>
 
@@ -167,6 +185,16 @@
         else
         {
             Console.WriteLine("\n\n\n\n\nSelectedClienteIdString is null or empty");
+        }
+        if (Encomenda.MetodoPagamento == 0)
+        {
+            Console.WriteLine("\n\n\n\n\nPagamento is null or empty");
+            return;
+        }
+        if (Encomenda.Estado == 0)
+        {
+            Console.WriteLine("\n\n\n\n\nEstado is null or empty");
+            return;
         }
 
         //Create the relationship entries

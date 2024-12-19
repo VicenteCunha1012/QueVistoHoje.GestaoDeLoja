@@ -21,7 +21,7 @@ else
         <div class="col-md-4">
             <EditForm method="post" Model="Encomenda" OnValidSubmit="UpdateEncomenda" FormName="edit" Enhance>
                 <DataAnnotationsValidator />
-                <ValidationSummary role="alert"/>
+                <ValidationSummary role="alert" />
                 <input type="hidden" name="Encomenda.Id" value="@Encomenda.Id" />
                 <div class="mb-3">
                     <label for="data" class="form-label">Data:</label>
@@ -29,8 +29,25 @@ else
                     <ValidationMessage For="() => Encomenda.Data" class="text-danger" />
                 </div>
                 <div class="mb-3">
+                    <label for="metodoPagamento" class="form-label">Método de Pagamento:</label>
+                    <InputSelect id="metodoPagamento" @bind-Value="Encomenda.MetodoPagamento" class="form-control">
+                        <option value="">Selecione um método de pagamento</option>
+                        @foreach (var metodo in Enum.GetValues(typeof(MetodoPagamento)))
+                        {
+                            <option value="@metodo">@metodo</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => Encomenda.MetodoPagamento" class="text-danger" />
+                </div>
+                <div class="mb-3">
                     <label for="estado" class="form-label">Estado:</label>
-                    <InputText id="estado" @bind-Value="Encomenda.Estado" class="form-control" />
+                    <InputSelect id="estado" @bind-Value="Encomenda.Estado" class="form-control">
+                        <option value="">Selecione um estado</option>
+                        @foreach (var estado in Enum.GetValues(typeof(EncomendaState)))
+                        {
+                            <option value="@estado">@estado</option>
+                        }
+                    </InputSelect>
                     <ValidationMessage For="() => Encomenda.Estado" class="text-danger" />
                 </div>
                 <div class="mb-3">
@@ -55,10 +72,12 @@ else
     [SupplyParameterFromForm]
     private Encomenda? Encomenda { get; set; }
 
+
     protected override async Task OnInitializedAsync()
     {
         using var context = DbFactory.CreateDbContext();
-        Encomenda ??= await context.Encomendas.FirstOrDefaultAsync(m => m.Id == Id);
+        Encomenda ??= await context.Encomendas
+                    .FirstOrDefaultAsync(m => m.Id == Id);
 
         if (Encomenda is null)
         {
@@ -71,7 +90,10 @@ else
     private async Task UpdateEncomenda()
     {
         using var context = DbFactory.CreateDbContext();
-        context.Attach(Encomenda!).State = EntityState.Modified;
+        if (Encomenda is not null)
+        {
+            context.Attach(Encomenda).State = EntityState.Modified;
+        }
 
         try
         {

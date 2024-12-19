@@ -13,7 +13,7 @@ a, .btn-link {
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 .content {
@@ -92,12 +92,35 @@ table {
     border-collapse: collapse;
 }
 
-table thead tr th {
-    background-color: rgba(255, 255, 255, 0.5); /* Fundo branco com transparência */
-    backdrop-filter: blur(5px); /* Aplica um desfoque por trás */
-}
+    table thead tr th {
+        background-color: rgba(255, 255, 255, 0.5); /* Fundo branco com transparência */
+        backdrop-filter: blur(5px); /* Aplica um desfoque por trás */
+    }
 
 label {
     background-color: rgba(255, 255, 255, 0.8);
     border-radius: 5px;
+}
+
+p a {
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 4px 4px 4px 4px;
+    border-radius: 10px;
+}
+
+.form-label {
+    background-color: transparent;
+}
+
+article p {
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 4px 4px 4px 4px;
+    border-radius: 10px;
+}
+
+article h1 {
+    background-color: rgba(255, 255, 255, 0.6);
+    padding: 4px 4px 4px 4px;
+    border-radius: 10px;
+    backdrop-filter: blur(2px);
 }
