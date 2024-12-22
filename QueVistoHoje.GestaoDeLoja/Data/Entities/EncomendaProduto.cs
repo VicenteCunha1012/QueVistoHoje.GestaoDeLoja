@@ -16,5 +16,7 @@ namespace QueVistoHoje.GestaoDeLoja.Data.Entities
         public int ProdutoId { get; set; }
         [ForeignKey("ProdutoId")]
         public Produto Produto { get; set; }
+
+        public int Quantidade { get; set; }
     }
 }

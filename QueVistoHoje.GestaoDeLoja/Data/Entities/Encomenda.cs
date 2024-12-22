@@ -20,15 +20,23 @@ namespace QueVistoHoje.GestaoDeLoja.Data.Entities
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public EncomendaState Estado { get; set; }
         public string EnderecoEntrega { get; set; }
-
+        public decimal PrecoTotal { get; set; }
         public ApplicationUser Cliente { get; set; }
 
-        public List<EncomendaProduto> EncomendaProdutos { get; set; } = new(); // New list to handle the relationship
-
+        public List<EncomendaProduto> EncomendaProdutos { get; set; } = new();
 
         public Encomenda()
         {
-            EncomendaProdutos = new List<EncomendaProduto>(); // Initialize the list
+            EncomendaProdutos = new List<EncomendaProduto>();
+            Estado = EncomendaState.POR_ENTREGAR;
+            MetodoPagamento = MetodoPagamento.CARTAO_CREDITO_OU_DEBITO;
+
+        }
+
+        public void CalcularPrecoTotal()
+        {
+            Console.WriteLine("A calcular de " + EncomendaProdutos.Count + " produtos");
+            PrecoTotal = EncomendaProdutos.Sum(ep => ep.Produto.Preco * ep.Quantidade);
         }
 
         public static string GetEstadoString(EncomendaState estado)
@@ -65,5 +73,4 @@ namespace QueVistoHoje.GestaoDeLoja.Data.Entities
         TRANSFERENCA_BANCARIA,
         MB_WAY
     }
-
 }

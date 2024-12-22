@@ -71,9 +71,9 @@
 
             <div class="mb-3">
                 <label class="form-label">Produtos:</label>
-                @foreach (var produto in SelectedProdutos)
+                @foreach (var item in SelectedProdutos)
                 {
-                    <p>@produto.Nome</p>
+                    <p>@item.Produto.Nome x @item.Quantidade</p>
                 }
                 <button type="button" class="btn btn-secondary" @onclick="ToggleProductSelection">Adicionar Produto</button>
             </div>
@@ -81,20 +81,25 @@
             @if (ShowProductSelection)
             {
                 <div class="col-md-12">
-                    <EditForm Model="SelectedProductId" OnValidSubmit="AddProductToEncomenda" FormName="addProduct" method="post" Enhance Context="productContext">
+                    <EditForm Model="NewEncomendaProduto" OnValidSubmit="AddProductToEncomenda" FormName="addProduct" method="post" Enhance Context="productContext">
                         <h3>Adicionar Produto</h3>
                         <DataAnnotationsValidator />
                         <ValidationSummary class="text-danger" role="alert" />
                         <div class="mb-3">
                             <label for="produto" class="form-label">Produto:</label>
-                            <InputSelect id="produto" @bind-Value="SelectedProductId" class="form-control">
+                            <InputSelect id="produto" @bind-Value="NewEncomendaProduto.ProdutoId" class="form-control">
                                 <option value="">Selecione um produto</option>
                                 @foreach (var produto in Produtos)
                                 {
                                     <option value="@produto.Id">@produto.Nome</option>
                                 }
                             </InputSelect>
-                            <ValidationMessage For="() => SelectedProductId" class="text-danger" />
+                            <ValidationMessage For="() => NewEncomendaProduto.ProdutoId" class="text-danger" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="quantidade" class="form-label">Quantidade:</label>
+                            <InputNumber id="quantidade" @bind-Value="NewEncomendaProduto.Quantidade" class="form-control" />
+                            <ValidationMessage For="() => NewEncomendaProduto.Quantidade" class="text-danger" />
                         </div>
                         <button type="submit" class="btn btn-primary">Adicionar</button>
                     </EditForm>
@@ -114,16 +119,17 @@
     private Encomenda Encomenda { get; set; } = new();
 
     [SupplyParameterFromForm]
-    private int SelectedProductId { get; set; } = 0;
+    private string? SelectedClienteIdString { get; set; }
+
+    private EncomendaProdutoModel NewEncomendaProduto { get; set; } = new();
 
     private List<ApplicationUser> Clientes { get; set; } = new();
     private List<Produto> Produtos { get; set; } = new();
 
-    private List<Produto> SelectedProdutos { get; set; } = new();
-
-    private string? SelectedClienteIdString { get; set; }
+    private List<EncomendaProdutoModel> SelectedProdutos { get; set; } = new();
 
     private bool ShowProductSelection { get; set; } = false;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -153,17 +159,21 @@
     private async Task AddProductToEncomenda()
     {
         using var context = DbFactory.CreateDbContext();
-        if (SelectedProductId != 0)
+
+        if (NewEncomendaProduto.ProdutoId != 0)
         {
-            var product = Produtos.FirstOrDefault(x => x.Id == SelectedProductId);
+            var product = Produtos.FirstOrDefault(x => x.Id == NewEncomendaProduto.ProdutoId);
             if (product != null)
             {
-                SelectedProdutos.Add(product);
-                SelectedProductId = 0;
+                SelectedProdutos.Add(new EncomendaProdutoModel { Produto = product, Quantidade = NewEncomendaProduto.Quantidade });
+
+                NewEncomendaProduto = new EncomendaProdutoModel();
             }
         }
+
         ShowProductSelection = false;
     }
+
 
     private async Task AddEncomenda()
     {
@@ -186,27 +196,32 @@
         {
             Console.WriteLine("\n\n\n\n\nSelectedClienteIdString is null or empty");
         }
-        if (Encomenda.MetodoPagamento == 0)
-        {
-            Console.WriteLine("\n\n\n\n\nPagamento is null or empty");
-            return;
-        }
-        if (Encomenda.Estado == 0)
-        {
-            Console.WriteLine("\n\n\n\n\nEstado is null or empty");
-            return;
-        }
+
 
         //Create the relationship entries
-        foreach (var produto in SelectedProdutos)
+        foreach (var encomendaProdutoModel in SelectedProdutos)
         {
-            Encomenda.EncomendaProdutos.Add(new EncomendaProduto { ProdutoId = produto.Id });
+            var produtoFromDb = await context.Produtos.FindAsync(encomendaProdutoModel.Produto.Id);
+            if (produtoFromDb != null)
+            {
+                Encomenda.EncomendaProdutos.Add(new EncomendaProduto { Produto = produtoFromDb, Quantidade = encomendaProdutoModel.Quantidade });
+            }
+            else
+            {
+                Console.WriteLine("\n\n\n\n\nProduto not found using the Id" + encomendaProdutoModel.Produto.Id);
+            }
         }
-
+        Encomenda.CalcularPrecoTotal();
         // Save changes
         context.Encomendas.Add(Encomenda);
         await context.SaveChangesAsync();
 
         NavigationManager.NavigateTo("/encomenda");
+    }
+    public class EncomendaProdutoModel
+    {
+        public int ProdutoId { get; set; }
+        public Produto Produto { get; set; }
+        public int Quantidade { get; set; }
     }
 }
